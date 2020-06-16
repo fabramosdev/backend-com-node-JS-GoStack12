@@ -8,7 +8,13 @@ app.use(express.json())
 const projects = []
 
 app.get('/projects', (request, response) => {
-    return response.json(projects)
+    const { title } = request.query
+
+    const results = title 
+        ? projects.filter(project => project.title.includes(title)) 
+        : projects
+
+    return response.json(results)
 })
 
 app.post('/projects', (request, response) => {
@@ -22,26 +28,45 @@ app.post('/projects', (request, response) => {
 })
 
 app.put('/projects/:id', (request, response) => {
+    // pegando o id pelo parâmetro da rota
     const { id } = request.params
 
+    // pegando os dados pelo corpo da requisição
+    const { title, owner } = request.body 
+
+    //findIndex => procura pelo índice [index/posição] no array
     const projectIndex = projects.findIndex(project => project.id === id)
 
-    if(!projectIndex < 0) {
+    //se não encontrar o id dentro de algum index no array, erro 400
+    if(projectIndex < 0) {
         return response.status(400).json({ error: 'Project not found.' })
     }
 
+    //montando o novo dado com id passado pela rota + request Body - (dado editado)
     const project = { id, title, owner }
 
+    /**
+     * Indo no array de projetos e procurando pelo índice[projectIndex] e 
+     * trocando pela const project [linha 40 - project montado e editado]
+     */
     projects[projectIndex] = project
 
+    //retornando JSON com o projeto já editado
     return response.json(project) 
 })
 
 app.delete('/projects/:id', (request, response) => {
-    return response.json([
-        'Projeto 2',
-        'Projeto 3',
-    ])
+    //pegando id pelo parâmetro da rota
+    const { id } = request.params
+    //findIndex => procura pelo índice [index/posição] no array
+    const projectIndex = projects.findIndex(project => project.id === id)
+    //se não encontrar o id dentro de algum index no array, erro 400
+    if(projectIndex < 0) {
+        return response.status(400).json({ error: 'Project not found.' })
+    }
+    // retirar esse indice dentro do array
+    projects.splice(projectIndex, 1)
+    return response.status(204).send()
 })
 
 app.listen(3333, () => {
